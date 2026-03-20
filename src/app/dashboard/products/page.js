@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { api, API_URL } from "@/lib/api";
+import { formatINR } from "@/lib/currency";
 import { useEffect, useState } from "react";
 import {
   DashboardEditIconLink,
@@ -49,7 +50,7 @@ export default function ProductsAdmin() {
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-zinc-200">{p.name}</p>
                 <p className="text-xs text-zinc-500">
-                  ${p.price} · {p.category?.name} · stock {p.stock}
+                  {formatINR(p.price)} · {p.category?.name} · stock {p.stock}
                 </p>
               </div>
               <DashboardEditIconLink href={`/dashboard/products/${p._id}`} />

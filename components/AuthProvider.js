@@ -60,8 +60,11 @@ export function AuthProvider({ children }) {
 
   if (loading && pathname !== '/login') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <p className="text-slate-600">Loading…</p>
+      <div className="flex min-h-screen items-center justify-center bg-admin-bg">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-9 w-9 animate-pulse rounded-xl bg-gradient-to-br from-admin-primary to-admin-secondary shadow-admin-md" />
+          <p className="text-sm text-admin-muted">Loading…</p>
+        </div>
       </div>
     );
   }

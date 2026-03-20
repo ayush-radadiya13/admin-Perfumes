@@ -43,13 +43,13 @@ function IconTrash({ className = 'h-[18px] w-[18px]' }) {
 const baseBtn =
   'inline-flex items-center justify-center rounded-md p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1';
 
-/** Light tables (white bg): indigo edit, red delete */
+/** Light tables (white bg): gold edit, red delete */
 export function TableEditIconButton({ onClick, className = '' }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`${baseBtn} text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-500 ${className}`}
+      className={`${baseBtn} text-admin-primary hover:bg-admin-primary/10 focus:ring-admin-primary/40 ${className}`}
       title="Edit"
       aria-label="Edit"
     >
@@ -78,7 +78,7 @@ export function TableStatusIconButton({ onClick, className = '' }) {
     <button
       type="button"
       onClick={onClick}
-      className={`${baseBtn} text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-500 ${className}`}
+      className={`${baseBtn} text-admin-primary hover:bg-admin-primary/10 focus:ring-admin-primary/40 ${className}`}
       title="Change status"
       aria-label="Change status"
     >

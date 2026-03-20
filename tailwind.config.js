@@ -3,13 +3,31 @@ module.exports = {
   content: [
     './app/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
+    './hooks/**/*.{js,jsx}',
     './src/**/*.{js,jsx}',
   ],
   theme: {
     extend: {
       colors: {
-        sidebar: '#0f172a',
-        accent: '#6366f1',
+        admin: {
+          primary: '#d4a373',
+          secondary: '#c58b2b',
+          bg: '#ffffff',
+          surface: '#f9fafb',
+          text: '#1a1a1a',
+          muted: '#6b7280',
+          border: '#e5e7eb',
+          sidebar: '#111111',
+          'sidebar-muted': '#9ca3af',
+          highlight: '#d4a373',
+        },
+        sidebar: '#111111',
+        accent: '#d4a373',
+      },
+      boxShadow: {
+        admin: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+        'admin-md': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
+        'admin-lg': '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
       },
     },
   },

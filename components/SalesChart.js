@@ -1,5 +1,7 @@
 'use client';
 
+import { formatINR } from '../lib/currency';
+
 export default function SalesChart({ labels, sales, title = 'Sales by period' }) {
   if (!labels?.length) {
     return <p className="text-slate-500 text-sm">No sales data yet.</p>;
@@ -16,7 +18,7 @@ export default function SalesChart({ labels, sales, title = 'Sales by period' })
               <div
                 className="w-full bg-indigo-500 rounded-t transition-all min-h-[4px]"
                 style={{ height: `${h}%` }}
-                title={`${label}: $${sales[i]}`}
+                title={`${label}: ${formatINR(sales[i])}`}
               />
               <span className="text-[10px] text-slate-500 truncate w-full text-center">{label}</span>
             </div>

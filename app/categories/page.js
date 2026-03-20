@@ -5,7 +5,8 @@ import { useAuth } from '../../components/AuthProvider';
 import { adminFetch, uploadImage } from '../../lib/api';
 import { useAdminFormOpener } from '../../components/Shell';
 import { TableEditIconButton, TableDeleteIconButton } from '../../components/TableActionIcons';
-import TablePagination, { ADMIN_PAGE_SIZE } from '../../components/TablePagination';
+import TablePagination from '../../components/TablePagination';
+import { usePagedTableState } from '../../hooks/usePagedTableState';
 
 const emptyForm = {
   name: '',
@@ -19,7 +20,7 @@ export default function CategoriesPage() {
   const { token } = useAuth();
   const { registerOpenForm } = useAdminFormOpener();
   const [list, setList] = useState([]);
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, handlePageSizeChange } = usePagedTableState();
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
   const [listLoading, setListLoading] = useState(false);
@@ -38,12 +39,12 @@ export default function CategoriesPage() {
     return registerOpenForm(openAddModal);
   }, [registerOpenForm, openAddModal]);
 
-  async function loadList(p = page) {
+  async function loadList(p = page, lim = pageSize) {
     if (!token) return;
     setListLoading(true);
     try {
       const d = await adminFetch(
-        `/categories?page=${p}&limit=${ADMIN_PAGE_SIZE}`,
+        `/categories?page=${p}&limit=${lim}`,
         { token }
       );
       const items = d.items ?? [];
@@ -61,8 +62,8 @@ export default function CategoriesPage() {
   }
 
   useEffect(() => {
-    if (token) loadList(page);
-  }, [token, page]);
+    if (token) loadList(page, pageSize);
+  }, [token, page, pageSize]);
 
   function closeModal() {
     setModalOpen(false);
@@ -195,6 +196,7 @@ export default function CategoriesPage() {
         <table className="w-full min-w-full text-sm table-fixed">
           <thead className="bg-slate-50">
             <tr>
+              <th className="p-3 w-14 text-center text-slate-500 font-medium">ID</th>
               <th className="text-left p-3 w-24">Image</th>
               <th className="text-left p-3">Name</th>
               <th className="text-left p-3">Slug</th>
@@ -203,8 +205,11 @@ export default function CategoriesPage() {
             </tr>
           </thead>
           <tbody>
-            {list.map((c) => (
+            {list.map((c, i) => (
               <tr key={c._id} className="border-t">
+                <td className="p-3 text-center tabular-nums text-slate-500">
+                  {(page - 1) * pageSize + i + 1}
+                </td>
                 <td className="p-3">
                   {c.image ? (
                     <img src={c.image} alt="" className="h-12 w-16 object-cover rounded" />
@@ -242,8 +247,9 @@ export default function CategoriesPage() {
           page={page}
           pages={pages}
           total={total}
-          limit={ADMIN_PAGE_SIZE}
+          limit={pageSize}
           onPageChange={setPage}
+          onLimitChange={handlePageSizeChange}
           loading={listLoading}
         />
       </div>

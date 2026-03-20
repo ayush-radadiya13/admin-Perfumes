@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../components/AuthProvider';
 import { adminFetch, API } from '../../lib/api';
+import TablePagination from '../../components/TablePagination';
+import { usePagedTableState } from '../../hooks/usePagedTableState';
 import Image from 'next/image';
+import { formatINR } from '../../lib/currency';
 
 function imgUrl(src) {
   if (!src) return '';
@@ -14,6 +17,9 @@ function imgUrl(src) {
 export default function WishlistsAdminPage() {
   const { token } = useAuth();
   const [rows, setRows] = useState([]);
+  const { page, setPage, pageSize, handlePageSizeChange } = usePagedTableState();
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -21,19 +27,27 @@ export default function WishlistsAdminPage() {
   const [topProducts, setTopProducts] = useState([]);
   const [err, setErr] = useState('');
 
-  const loadList = useCallback(async () => {
+  async function loadList(p = page, lim = pageSize) {
     if (!token) return;
     setLoading(true);
     setErr('');
     try {
-      const data = await adminFetch('/wishlists', { token });
-      setRows(data.wishlists || []);
+      const data = await adminFetch(`/wishlists?page=${p}&limit=${lim}`, { token });
+      const list = data.wishlists || [];
+      if (list.length === 0 && p > 1) {
+        setPage(p - 1);
+        return;
+      }
+      setRows(list);
+      setTotal(data.total ?? 0);
+      setPages(data.pages ?? 1);
+      setPage(data.page ?? p);
     } catch (e) {
       setErr(e.message);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }
 
   const loadTop = useCallback(async () => {
     if (!token) return;
@@ -46,9 +60,12 @@ export default function WishlistsAdminPage() {
   }, [token]);
 
   useEffect(() => {
-    loadList();
     loadTop();
-  }, [loadList, loadTop]);
+  }, [loadTop]);
+
+  useEffect(() => {
+    if (token) loadList(page, pageSize);
+  }, [token, page, pageSize]);
 
   async function openUser(userId) {
     setSelectedId(userId);
@@ -97,56 +114,61 @@ export default function WishlistsAdminPage() {
         <p className="text-red-600 text-sm bg-red-50 px-3 py-2 rounded">{err}</p>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid  gap-8">
         <div className="lg:col-span-2 space-y-4">
           <h2 className="font-semibold text-slate-700">Users</h2>
-          {loading ? (
-            <p className="text-slate-500">Loading…</p>
-          ) : (
-            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
+          <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="p-3 w-14 text-center font-medium text-slate-500">ID</th>
+                  <th className="text-left p-3 font-medium text-slate-600">User</th>
+                  <th className="text-left p-3 font-medium text-slate-600">Email</th>
+                  <th className="text-right p-3 font-medium text-slate-600">Items</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading && !rows.length ? (
                   <tr>
-                    <th className="text-left p-3 font-medium text-slate-600">User</th>
-                    <th className="text-left p-3 font-medium text-slate-600">Email</th>
-                    <th className="text-right p-3 font-medium text-slate-600">Items</th>
+                    <td colSpan={4} className="p-8 text-center text-slate-500">
+                      Loading…
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {rows.map((w) => (
+                ) : (
+                  rows.map((w, i) => (
                     <tr
                       key={w.userId}
                       className={`border-t border-slate-100 cursor-pointer hover:bg-amber-50/50 ${
                         selectedId === w.userId ? 'bg-amber-50' : ''
-                      }`}
+                      } ${loading ? 'opacity-60 pointer-events-none' : ''}`}
                       onClick={() => openUser(w.userId)}
                     >
+                      <td className="p-3 text-center tabular-nums text-slate-500">
+                        {(page - 1) * pageSize + i + 1}
+                      </td>
                       <td className="p-3 font-medium text-slate-800">{w.name || '—'}</td>
                       <td className="p-3 text-slate-600 truncate max-w-[200px]">{w.email}</td>
                       <td className="p-3 text-right text-slate-800">{w.itemCount}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {!rows.length && (
-                <p className="p-8 text-center text-slate-500">No wishlists yet.</p>
-              )}
-            </div>
-          )}
+                  ))
+                )}
+              </tbody>
+            </table>
+            <TablePagination
+              page={page}
+              pages={pages}
+              total={total}
+              limit={pageSize}
+              onPageChange={setPage}
+              onLimitChange={handlePageSizeChange}
+              loading={loading}
+            />
+            {!rows.length && !loading && (
+              <p className="p-8 text-center text-slate-500 border-t border-slate-100">No users yet.</p>
+            )}
+          </div>
         </div>
 
-        <div>
-          <h2 className="font-semibold text-slate-700 mb-3">Most wishlisted</h2>
-          <ul className="space-y-2 border border-slate-200 rounded-lg p-3 bg-white text-sm">
-            {topProducts.map((p) => (
-              <li key={p._id} className="flex justify-between gap-2 text-slate-700">
-                <span className="truncate">{p.name}</span>
-                <span className="shrink-0 text-amber-700 font-medium">{p.wishlistCount}♡</span>
-              </li>
-            ))}
-            {!topProducts.length && <li className="text-slate-500">No data yet.</li>}
-          </ul>
-        </div>
       </div>
 
       {selectedId && (
@@ -186,7 +208,7 @@ export default function WishlistsAdminPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-slate-800 truncate">{p.name}</p>
-                    <p className="text-amber-800 text-sm">${Number(p.price).toFixed(2)}</p>
+                    <p className="text-amber-800 text-sm">{formatINR(p.price)}</p>
                     <button
                       type="button"
                       onClick={() => removeProduct(selectedId, p._id)}

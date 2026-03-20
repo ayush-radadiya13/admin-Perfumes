@@ -5,6 +5,8 @@ import { useAuth } from '../../components/AuthProvider';
 import { adminFetch } from '../../lib/api';
 import AnalyticsGraphChart from '../../components/AnalyticsGraphChart';
 import MostWishlistedChart from '../../components/MostWishlistedChart';
+import GenderRegistrationChart from '../../components/GenderRegistrationChart';
+import { formatINR } from '../../lib/currency';
 
 export default function DashboardPage() {
   const { token } = useAuth();
@@ -31,7 +33,7 @@ export default function DashboardPage() {
   }, [token]);
 
   if (err) return <p className="text-red-600">{err}</p>;
-  if (!data) return <p className="text-slate-600">Loading analytics…</p>;
+  if (!data) return <p className="text-admin-muted">Loading analytics…</p>;
 
   const { summary, topPerfumes, monthlyChart } = data;
   /** Prefer dedicated graph API; shape matches getGraphData */
@@ -43,46 +45,63 @@ export default function DashboardPage() {
         : null;
 
   return (
-    <div className="space-y-10 w-full max-w-none">
-      <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+    <div className="w-full max-w-none space-y-10">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-admin-text">Dashboard</h1>
+        <p className="mt-1 text-sm text-admin-muted">Overview of sales, catalog, and engagement.</p>
+      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {[
-          ['Total revenue', `$${summary.totalRevenue}`],
+          ['Total revenue', formatINR(summary.totalRevenue)],
           ['Orders', summary.totalOrders],
           ['Pending', summary.pendingOrders],
-          ['This month', `$${summary.monthlySales}`],
+          ['This month', formatINR(summary.monthlySales)],
           ['Products', summary.activeProducts],
           ['Categories', summary.activeCategories],
         ].map(([k, v]) => (
-          <div key={k} className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
-            <p className="text-xs text-slate-500 uppercase">{k}</p>
-            <p className="text-xl font-semibold text-slate-800 mt-1">{v}</p>
+          <div
+            key={k}
+            className="admin-card border-admin-border p-4 transition hover:shadow-admin-md"
+          >
+            <p className="text-xs font-medium uppercase tracking-wide text-admin-muted">{k}</p>
+            <p className="mt-1 text-xl font-semibold text-admin-text">{v}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm min-w-0">
+      <div className="grid gap-8 lg:grid-cols-3">
+        <div className="admin-card min-w-0 p-6 shadow-admin lg:col-span-2">
           <AnalyticsGraphChart graph={graphPayload} title="Revenue over time" />
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <MostWishlistedChart products={wishlisted} title="Most wishlisted (saves)" />
+        <div className="admin-card flex flex-col justify-center p-6 shadow-admin">
+          <GenderRegistrationChart
+            male={summary.registeredMale ?? 0}
+            female={summary.registeredFemale ?? 0}
+            withoutGender={summary.registeredWithoutGender ?? 0}
+          />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm max-w-3xl">
-        <h3 className="text-sm font-medium text-slate-600 mb-4">Most purchased perfumes</h3>
+      <div className="admin-card p-6 shadow-admin">
+        <MostWishlistedChart products={wishlisted} title="Most wishlisted (saves)" />
+      </div>
+
+      <div className="admin-card max-w-3xl p-6 shadow-admin">
+        <h3 className="mb-4 text-sm font-semibold text-admin-text">Most purchased perfumes</h3>
         <ul className="space-y-3">
           {(topPerfumes || []).map((row, i) => (
-            <li key={row.productId || i} className="flex justify-between text-sm border-b border-slate-100 pb-2">
-              <span className="font-medium truncate pr-2">{row.name || '—'}</span>
-              <span className="text-slate-500 shrink-0">
-                {row.totalQty} sold · ${row.revenue?.toFixed?.(2) ?? row.revenue}
+            <li
+              key={row.productId || i}
+              className="flex justify-between border-b border-admin-border pb-2 text-sm last:border-0"
+            >
+              <span className="truncate pr-2 font-medium text-admin-text">{row.name || '—'}</span>
+              <span className="shrink-0 text-admin-muted">
+                {row.totalQty} sold · {formatINR(row.revenue)}
               </span>
             </li>
           ))}
-          {!topPerfumes?.length && <li className="text-slate-500">No orders yet.</li>}
+          {!topPerfumes?.length && <li className="text-admin-muted">No orders yet.</li>}
         </ul>
       </div>
     </div>

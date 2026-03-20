@@ -10,6 +10,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
+import { formatINR } from '../lib/currency';
 
 function formatPeriod(label, granularity) {
   if (!label || typeof label !== 'string') return label;
@@ -41,10 +42,10 @@ function GraphTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-md">
-      <p className="font-medium text-slate-800">{d.fullLabel}</p>
-      <p className="text-indigo-600 mt-1">Revenue: ${Number(d.sales).toFixed(2)}</p>
-      <p className="text-slate-500 text-xs">{d.orders} orders</p>
+    <div className="rounded-xl border border-admin-border bg-admin-bg px-3 py-2 text-sm shadow-admin-md">
+      <p className="font-medium text-admin-text">{d.fullLabel}</p>
+      <p className="mt-1 font-medium text-[#8a6914]">Revenue: {formatINR(d.sales)}</p>
+      <p className="text-xs text-admin-muted">{d.orders} orders</p>
     </div>
   );
 }
@@ -60,34 +61,36 @@ export default function AnalyticsGraphChart({ graph, title = 'Sales by period' }
   if (!chartData.length) {
     return (
       <div>
-        <h3 className="text-sm font-medium text-slate-600 mb-1">{title}</h3>
-        <p className="text-xs text-slate-400 mb-4">{subtitle}</p>
-        <p className="text-slate-500 text-sm">No sales in this range yet.</p>
+        <h3 className="mb-1 text-sm font-semibold text-admin-text">{title}</h3>
+        <p className="mb-4 text-xs text-admin-muted">{subtitle}</p>
+        <p className="text-sm text-admin-muted">No sales in this range yet.</p>
       </div>
     );
   }
 
   return (
     <div className="w-full">
-      <h3 className="text-sm font-medium text-slate-600 mb-1">{title}</h3>
-      <p className="text-xs text-slate-400 mb-4">{subtitle}</p>
+      <h3 className="mb-1 text-sm font-semibold text-admin-text">{title}</h3>
+      <p className="mb-4 text-xs text-admin-muted">{subtitle}</p>
       <div className="h-64 w-full min-h-[16rem]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" strokeOpacity={0.12} vertical={false} />
             <XAxis
               dataKey="period"
-              tick={{ fontSize: 11, fill: '#64748b' }}
+              tick={{ fontSize: 11, fill: '#1a1a1a' }}
               tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
+              axisLine={{ stroke: '#1a1a1a', strokeOpacity: 0.25 }}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#64748b' }}
+              tick={{ fontSize: 11, fill: '#1a1a1a' }}
               tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
-              tickFormatter={(v) => (v >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${v}`)}
+              axisLine={{ stroke: '#1a1a1a', strokeOpacity: 0.25 }}
+              tickFormatter={(v) =>
+                v >= 1000 ? `₹${(v / 1000).toFixed(1)}k` : formatINR(v)
+              }
             />
-            <Tooltip content={<GraphTooltip />} cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }} />
+            <Tooltip content={<GraphTooltip />} cursor={{ fill: 'rgba(26, 26, 26, 0.06)' }} />
             <Bar
               dataKey="sales"
               name="sales"
@@ -97,8 +100,9 @@ export default function AnalyticsGraphChart({ graph, title = 'Sales by period' }
             />
             <defs>
               <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
-                <stop offset="100%" stopColor="#818cf8" stopOpacity={0.85} />
+                <stop offset="0%" stopColor="#f5e6c8" stopOpacity={1} />
+                <stop offset="35%" stopColor="#d4a373" stopOpacity={1} />
+                <stop offset="100%" stopColor="#1a1a1a" stopOpacity={0.92} />
               </linearGradient>
             </defs>
           </BarChart>

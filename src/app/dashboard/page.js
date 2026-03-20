@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api";
+import { formatINR } from "@/lib/currency";
 import { useEffect, useState } from "react";
 import {
   BarChart,
@@ -45,12 +46,13 @@ export default function DashboardPage() {
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
           <p className="text-xs uppercase tracking-wider text-zinc-500">This month sales</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-500">${stats.monthlySales.toLocaleString()}</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-500">{formatINR(stats.monthlySales)}</p>
         </div>
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
           <p className="text-xs uppercase tracking-wider text-zinc-500">Month detail</p>
           <p className="mt-2 text-lg text-zinc-200">
-            {monthly?.monthLabel}: ${monthly?.salesTotal?.toLocaleString() ?? "—"}
+            {monthly?.monthLabel}:{" "}
+            {monthly?.salesTotal != null ? formatINR(monthly.salesTotal) : "—"}
           </p>
           <p className="text-xs text-zinc-500">{monthly?.orderCount ?? 0} orders</p>
         </div>
@@ -66,7 +68,7 @@ export default function DashboardPage() {
 
       <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
         <p className="text-xs uppercase text-zinc-500">Revenue (all time)</p>
-        <p className="text-xl text-emerald-500">${stats.revenueAllTime.toLocaleString()}</p>
+        <p className="text-xl text-emerald-500">{formatINR(stats.revenueAllTime)}</p>
         {stats.mostPurchased && (
           <p className="mt-3 text-sm text-zinc-400">
             Most purchased: <strong className="text-amber-400">{stats.mostPurchased.name}</strong> (
@@ -88,7 +90,7 @@ export default function DashboardPage() {
                   contentStyle={{ background: "#18181b", border: "1px solid #3f3f46" }}
                   labelStyle={{ color: "#fafafa" }}
                 />
-                <Bar dataKey="sales" fill="#d97706" name="Sales ($)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sales" fill="#d97706" name="Sales (₹)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -127,7 +129,7 @@ export default function DashboardPage() {
               <tr key={i} className="border-b border-zinc-800/50">
                 <td className="py-2 text-zinc-200">{r.name}</td>
                 <td className="py-2 text-amber-500">{r.totalSold}</td>
-                <td className="py-2">${r.revenue.toLocaleString()}</td>
+                <td className="py-2">{formatINR(r.revenue)}</td>
               </tr>
             ))}
           </tbody>

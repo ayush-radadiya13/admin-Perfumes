@@ -3,22 +3,23 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../components/AuthProvider';
 import { adminFetch } from '../../lib/api';
-import TablePagination, { ADMIN_PAGE_SIZE } from '../../components/TablePagination';
+import TablePagination from '../../components/TablePagination';
+import { usePagedTableState } from '../../hooks/usePagedTableState';
 
 export default function ReviewsPage() {
   const { token } = useAuth();
   const [items, setItems] = useState([]);
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, handlePageSizeChange } = usePagedTableState();
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
   const [listLoading, setListLoading] = useState(false);
 
-  async function loadList(p = page) {
+  async function loadList(p = page, lim = pageSize) {
     if (!token) return;
     setListLoading(true);
     try {
       const d = await adminFetch(
-        `/reviews?page=${p}&limit=${ADMIN_PAGE_SIZE}`,
+        `/reviews?page=${p}&limit=${lim}`,
         { token }
       );
       const rows = d.items ?? [];
@@ -36,8 +37,8 @@ export default function ReviewsPage() {
   }
 
   useEffect(() => {
-    if (token) loadList(page);
-  }, [token, page]);
+    if (token) loadList(page, pageSize);
+  }, [token, page, pageSize]);
 
   return (
     <div className="w-full">
@@ -48,6 +49,7 @@ export default function ReviewsPage() {
         <table className="w-full min-w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
+              <th className="p-3 w-14 text-center text-slate-500 font-medium">ID</th>
               <th className="text-left p-3">Product</th>
               <th className="text-left p-3">Customer</th>
               <th className="text-left p-3">Rating</th>
@@ -56,8 +58,11 @@ export default function ReviewsPage() {
             </tr>
           </thead>
           <tbody>
-            {items.map((r) => (
+            {items.map((r, i) => (
               <tr key={r._id} className="border-t align-top">
+                <td className="p-3 text-center tabular-nums text-slate-500">
+                  {(page - 1) * pageSize + i + 1}
+                </td>
                 <td className="p-3">{r.product?.name || '—'}</td>
                 <td className="p-3">
                   {r.customerName}
@@ -78,8 +83,9 @@ export default function ReviewsPage() {
           page={page}
           pages={pages}
           total={total}
-          limit={ADMIN_PAGE_SIZE}
+          limit={pageSize}
           onPageChange={setPage}
+          onLimitChange={handlePageSizeChange}
           loading={listLoading}
         />
       </div>
